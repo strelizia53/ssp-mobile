@@ -34,40 +34,62 @@ class _ProductPageState extends State<ProductPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
-        title: const Text('Products'),
-        backgroundColor: Colors.pinkAccent,
-      ),
-      body: FutureBuilder<List<Product>>(
-        future: futureProducts,
-        builder: (context, snapshot) {
-          if (snapshot.connectionState == ConnectionState.waiting) {
-            return const Center(child: CircularProgressIndicator());
-          } else if (snapshot.hasError) {
-            return Center(child: Text('Error: ${snapshot.error}'));
-          } else if (!snapshot.hasData || snapshot.data!.isEmpty) {
-            return const Center(child: Text('No products found.'));
-          }
-
-          final products = snapshot.data!;
-
-          return Padding(
-            padding: const EdgeInsets.all(8.0),
-            child: GridView.builder(
-              gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-                crossAxisCount: 2,  // Display two products per row
-                mainAxisSpacing: 10,
-                crossAxisSpacing: 10,
-                childAspectRatio: 0.7, // Adjust the aspect ratio to fit the card layout
+      backgroundColor: const Color(0xFF202840), // Dark background color
+      body: SafeArea(
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            // Brand Title at the top
+            Padding(
+              padding: const EdgeInsets.symmetric(vertical: 24.0, horizontal: 16.0),
+              child: Center(
+                child: Text(
+                  'ORYX Products',
+                  style: TextStyle(
+                    color: Colors.pinkAccent,
+                    fontSize: 32,
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
               ),
-              itemCount: products.length,
-              itemBuilder: (context, index) {
-                final product = products[index];
-                return ProductCard(product: product);
-              },
             ),
-          );
-        },
+
+            // Product Grid
+            Expanded(
+              child: FutureBuilder<List<Product>>(
+                future: futureProducts,
+                builder: (context, snapshot) {
+                  if (snapshot.connectionState == ConnectionState.waiting) {
+                    return const Center(child: CircularProgressIndicator());
+                  } else if (snapshot.hasError) {
+                    return Center(child: Text('Error: ${snapshot.error}'));
+                  } else if (!snapshot.hasData || snapshot.data!.isEmpty) {
+                    return const Center(child: Text('No products found.'));
+                  }
+
+                  final products = snapshot.data!;
+
+                  return Padding(
+                    padding: const EdgeInsets.all(8.0),
+                    child: GridView.builder(
+                      gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+                        crossAxisCount: 2,  // Display two products per row
+                        mainAxisSpacing: 10,
+                        crossAxisSpacing: 10,
+                        childAspectRatio: 0.65, // Adjusted to give better layout (taller cards)
+                      ),
+                      itemCount: products.length,
+                      itemBuilder: (context, index) {
+                        final product = products[index];
+                        return ProductCard(product: product);
+                      },
+                    ),
+                  );
+                },
+              ),
+            ),
+          ],
+        ),
       ),
     );
   }
@@ -92,16 +114,17 @@ class ProductCard extends StatelessWidget {
         );
       },
       child: Card(
-        color: const Color(0xFF2B3554),  // Dark background color
+        color: const Color(0xFF2B3554),  // Darker background for product card
         shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(12),
+          borderRadius: BorderRadius.circular(15),  // Rounded corners
         ),
+        elevation: 5,  // Shadow for the card to make it pop
         child: Padding(
-          padding: const EdgeInsets.all(10.0),
+          padding: const EdgeInsets.all(12.0),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              // Product Image using Image.network
+              // Product Image with proper aspect ratio to avoid image crush
               Expanded(
                 child: ClipRRect(
                   borderRadius: BorderRadius.circular(8.0),
@@ -124,6 +147,8 @@ class ProductCard extends StatelessWidget {
                   fontSize: 16,
                   fontWeight: FontWeight.bold,
                 ),
+                maxLines: 1,  // Prevent overflow
+                overflow: TextOverflow.ellipsis,
               ),
               const SizedBox(height: 4),
               // Product Description
