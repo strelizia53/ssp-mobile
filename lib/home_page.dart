@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'product_page.dart';  // Import ProductPage
 import 'api_service.dart';
-import 'product_page.dart';
 
 class HomePage extends StatelessWidget {
   final String token;
