@@ -1,39 +1,13 @@
 import 'package:flutter/material.dart';
-import 'package:shared_preferences/shared_preferences.dart';
-import 'api_service.dart';
 
 class HomePage extends StatelessWidget {
   final String token;
 
   const HomePage({Key? key, required this.token}) : super(key: key);
 
-  Future<void> _logout(BuildContext context) async {
-    try {
-      SharedPreferences prefs = await SharedPreferences.getInstance();
-      await ApiService().logout();  // Call logout API
-
-      // Clear token and navigate back to login page
-      await prefs.remove('token');
-      Navigator.pushReplacementNamed(context, '/login');
-    } catch (error) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Failed to log out. Please try again.')),
-      );
-    }
-  }
-
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
-        title: const Text('ORYX Dashboard'),
-        actions: [
-          IconButton(
-            icon: const Icon(Icons.logout),
-            onPressed: () => _logout(context),  // Logout when pressed
-          ),
-        ],
-      ),
       body: Padding(
         padding: const EdgeInsets.all(16.0),
         child: Column(
