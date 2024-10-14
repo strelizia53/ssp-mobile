@@ -24,37 +24,33 @@ class _ProductPageState extends State<ProductPage> {
     final apiService = ApiService();
     final response = await apiService.fetchProducts();
 
-    // Ensure you're getting the correct 'products' list from the response.
     final productList = response['products'] as List;
-
-    // Map each item in productList to a Product object
     return productList.map((data) => Product.fromJson(data as Map<String, dynamic>)).toList();
   }
 
   @override
   Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+
     return Scaffold(
-      backgroundColor: const Color(0xFF202840), // Dark background color
+      backgroundColor: theme.scaffoldBackgroundColor,  // Use theme background color
       body: SafeArea(
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            // Brand Title at the top
             Padding(
               padding: const EdgeInsets.symmetric(vertical: 24.0, horizontal: 16.0),
               child: Center(
                 child: Text(
                   'ORYX Products',
                   style: TextStyle(
-                    color: Colors.pinkAccent,
+                    color: theme.colorScheme.primary,  // Use theme primary color
                     fontSize: 32,
                     fontWeight: FontWeight.bold,
                   ),
                 ),
               ),
             ),
-
-            // Product Grid
             Expanded(
               child: FutureBuilder<List<Product>>(
                 future: futureProducts,
@@ -76,7 +72,7 @@ class _ProductPageState extends State<ProductPage> {
                         crossAxisCount: 2,  // Display two products per row
                         mainAxisSpacing: 10,
                         crossAxisSpacing: 10,
-                        childAspectRatio: 0.65, // Adjusted to give better layout (taller cards)
+                        childAspectRatio: 0.65,
                       ),
                       itemCount: products.length,
                       itemBuilder: (context, index) {
@@ -103,9 +99,10 @@ class ProductCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+
     return GestureDetector(
       onTap: () {
-        // Navigate to the ProductDetailPage when tapped
         Navigator.push(
           context,
           MaterialPageRoute(
@@ -114,17 +111,16 @@ class ProductCard extends StatelessWidget {
         );
       },
       child: Card(
-        color: const Color(0xFF2B3554),  // Darker background for product card
+        color: theme.cardColor,  // Use theme card color
         shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(15),  // Rounded corners
+          borderRadius: BorderRadius.circular(15),
         ),
-        elevation: 5,  // Shadow for the card to make it pop
+        elevation: 5,
         child: Padding(
           padding: const EdgeInsets.all(12.0),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              // Product Image with proper aspect ratio to avoid image crush
               Expanded(
                 child: ClipRRect(
                   borderRadius: BorderRadius.circular(8.0),
@@ -139,48 +135,39 @@ class ProductCard extends StatelessWidget {
                 ),
               ),
               const SizedBox(height: 8),
-              // Product Name
               Text(
                 product.name,
-                style: const TextStyle(
-                  color: Colors.white,
+                style: theme.textTheme.bodyMedium?.copyWith(
                   fontSize: 16,
                   fontWeight: FontWeight.bold,
                 ),
-                maxLines: 1,  // Prevent overflow
+                maxLines: 1,
                 overflow: TextOverflow.ellipsis,
               ),
               const SizedBox(height: 4),
-              // Product Description
               Text(
                 product.description,
-                style: const TextStyle(
-                  color: Colors.grey,
-                  fontSize: 12,
-                ),
+                style: theme.textTheme.bodySmall?.copyWith(color: theme.textTheme.bodySmall?.color?.withOpacity(0.7)),
                 maxLines: 2,
                 overflow: TextOverflow.ellipsis,
               ),
               const Spacer(),
-              // Product Price
               Text(
                 '\$${product.price}',
-                style: const TextStyle(
-                  color: Colors.greenAccent,
+                style: TextStyle(
+                  color: theme.colorScheme.secondary,
                   fontWeight: FontWeight.bold,
                   fontSize: 14,
                 ),
               ),
-              // Product Stock Info
               Text(
                 'In Stock: ${product.stock}',
-                style: const TextStyle(
-                  color: Colors.white70,
+                style: TextStyle(
+                  color: theme.textTheme.bodySmall?.color,
                   fontSize: 12,
                 ),
               ),
               const SizedBox(height: 6),
-              // View Product Button
               Align(
                 alignment: Alignment.centerLeft,
                 child: TextButton(
@@ -192,10 +179,10 @@ class ProductCard extends StatelessWidget {
                       ),
                     );
                   },
-                  child: const Text(
+                  child: Text(
                     'View Product',
                     style: TextStyle(
-                      color: Colors.pinkAccent,
+                      color: theme.colorScheme.primary,
                       fontWeight: FontWeight.bold,
                       fontSize: 12,
                     ),
