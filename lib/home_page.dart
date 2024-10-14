@@ -1,17 +1,20 @@
 import 'package:flutter/material.dart';
-import 'product_page.dart';  // Import ProductPage
+import 'package:shared_preferences/shared_preferences.dart';
 import 'api_service.dart';
 
 class HomePage extends StatelessWidget {
   final String token;
-  final ApiService _apiService = ApiService();
 
-  HomePage({Key? key, required this.token}) : super(key: key);
+  const HomePage({Key? key, required this.token}) : super(key: key);
 
   Future<void> _logout(BuildContext context) async {
     try {
-      await _apiService.logout(token);
-      // Redirect to the login page after successful logout
+      SharedPreferences prefs = await SharedPreferences.getInstance();
+      await ApiService()
+          .logout(); // Logout API call (token handled in ApiService)
+
+      // Clear token and redirect to login page
+      await prefs.remove('token');
       Navigator.pushReplacementNamed(context, '/login');
     } catch (error) {
       ScaffoldMessenger.of(context).showSnackBar(
@@ -28,7 +31,7 @@ class HomePage extends StatelessWidget {
         actions: [
           IconButton(
             icon: const Icon(Icons.logout),
-            onPressed: () => _logout(context),  // Logout when pressed
+            onPressed: () => _logout(context), // Logout when pressed
           ),
         ],
       ),
@@ -53,10 +56,7 @@ class HomePage extends StatelessWidget {
             ElevatedButton(
               onPressed: () {
                 // Navigate to the ProductPage when clicked
-                Navigator.push(
-                  context,
-                  MaterialPageRoute(builder: (context) => const ProductPage()),
-                );
+                Navigator.pushNamed(context, '/products');
               },
               child: const Text('View Products'),
             ),

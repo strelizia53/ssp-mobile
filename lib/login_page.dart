@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import 'api_service.dart';
 
 class LoginPage extends StatefulWidget {
@@ -12,38 +13,67 @@ class _LoginPageState extends State<LoginPage> {
   final _emailController = TextEditingController();
   final _passwordController = TextEditingController();
   final _apiService = ApiService();
+  final _formKey = GlobalKey<FormState>(); // Form key for validation
 
   bool isLoading = false;
   String? errorMessage;
+  bool _obscurePassword = true; // For toggling password visibility
 
   Future<void> _login() async {
-    setState(() {
-      isLoading = true;
-      errorMessage = null;
-    });
+    if (_formKey.currentState!.validate()) {
+      setState(() {
+        isLoading = true;
+        errorMessage = null;
+      });
 
-    try {
-      final result = await _apiService.login(
-        _emailController.text,
-        _passwordController.text,
-      );
-      final token = result['token'];
-      Navigator.pushReplacementNamed(context, '/home', arguments: token);
-    } catch (error) {
-      setState(() {
-        errorMessage = error.toString();
-      });
-    } finally {
-      setState(() {
-        isLoading = false;
-      });
+      try {
+        final result = await _apiService.login(
+          _emailController.text,
+          _passwordController.text,
+        );
+
+        final token = result['token'];
+        if (token != null) {
+          SharedPreferences prefs = await SharedPreferences.getInstance();
+          bool isStored = await prefs.setString('token', token);
+
+          if (isStored) {
+            print('Token successfully stored: $token');
+            Navigator.pushReplacementNamed(context, '/home');
+          } else {
+            throw Exception('Failed to store token');
+          }
+        } else {
+          throw Exception('Login failed: No token returned');
+        }
+      } catch (error, stackTrace) {
+        print('Error: $error');
+        print('StackTrace: $stackTrace');
+        setState(() {
+          errorMessage = error.toString();
+        });
+      } finally {
+        setState(() {
+          isLoading = false;
+        });
+      }
     }
+  }
+
+  // Basic Email Validation
+  String? _validateEmail(String value) {
+    const emailPattern = r'^[^@]+@[^@]+\.[^@]+';
+    final regExp = RegExp(emailPattern);
+
+    if (!regExp.hasMatch(value)) {
+      return 'Please enter a valid email';
+    }
+    return null;
   }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      // Background color for the login page
       backgroundColor: const Color(0xFF202840),
       body: Center(
         child: SingleChildScrollView(
@@ -52,7 +82,6 @@ class _LoginPageState extends State<LoginPage> {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.center,
               children: [
-                // Logo or title at the top
                 const Text(
                   "ORYX",
                   style: TextStyle(
@@ -63,7 +92,6 @@ class _LoginPageState extends State<LoginPage> {
                 ),
                 const SizedBox(height: 40),
 
-                // Card for form input with a shadow for professionalism
                 Card(
                   shape: RoundedRectangleBorder(
                     borderRadius: BorderRadius.circular(15),
@@ -71,93 +99,107 @@ class _LoginPageState extends State<LoginPage> {
                   elevation: 10,
                   child: Padding(
                     padding: const EdgeInsets.all(20.0),
-                    child: Column(
-                      children: [
-                        // Email Input Field
-                        TextField(
-                          controller: _emailController,
-                          style: const TextStyle(color: Colors.pinkAccent),  // Pink text color
-                          decoration: InputDecoration(
-                            labelText: 'Email',
-                            labelStyle: const TextStyle(color: Colors.pinkAccent),  // Pink label
-                            hintText: 'Enter your email',
-                            hintStyle: TextStyle(color: Colors.pinkAccent.withOpacity(0.7)),  // Pink hint
-                            enabledBorder: OutlineInputBorder(
-                              borderSide: const BorderSide(color: Colors.pinkAccent),  // Pink border
-                              borderRadius: BorderRadius.circular(10),
-                            ),
-                            focusedBorder: OutlineInputBorder(
-                              borderSide: const BorderSide(color: Colors.pinkAccent, width: 2.0),  // Pink border when focused
-                              borderRadius: BorderRadius.circular(10),
-                            ),
-                          ),
-                        ),
-                        const SizedBox(height: 16),
-
-                        // Password Input Field
-                        TextField(
-                          controller: _passwordController,
-                          obscureText: true,
-                          style: const TextStyle(color: Colors.pinkAccent),  // Pink text color
-                          decoration: InputDecoration(
-                            labelText: 'Password',
-                            labelStyle: const TextStyle(color: Colors.pinkAccent),  // Pink label
-                            hintText: 'Enter your password',
-                            hintStyle: TextStyle(color: Colors.pinkAccent.withOpacity(0.7)),  // Pink hint
-                            enabledBorder: OutlineInputBorder(
-                              borderSide: const BorderSide(color: Colors.pinkAccent),  // Pink border
-                              borderRadius: BorderRadius.circular(10),
-                            ),
-                            focusedBorder: OutlineInputBorder(
-                              borderSide: const BorderSide(color: Colors.pinkAccent, width: 2.0),  // Pink border when focused
-                              borderRadius: BorderRadius.circular(10),
-                            ),
-                          ),
-                        ),
-                        const SizedBox(height: 20),
-
-                        // Error Message
-                        if (errorMessage != null)
-                          Padding(
-                            padding: const EdgeInsets.only(bottom: 16.0),
-                            child: Text(
-                              errorMessage!,
-                              style: const TextStyle(color: Colors.red),
-                            ),
-                          ),
-
-                        // Login Button with loading state
-                        SizedBox(
-                          width: double.infinity,
-                          child: ElevatedButton(
-                            onPressed: isLoading ? null : _login,
-                            style: ElevatedButton.styleFrom(
-                              padding: const EdgeInsets.symmetric(vertical: 15),
-                              shape: RoundedRectangleBorder(
+                    child: Form(
+                      key: _formKey,
+                      child: Column(
+                        children: [
+                          TextFormField(
+                            controller: _emailController,
+                            style: const TextStyle(color: Colors.pinkAccent),
+                            decoration: InputDecoration(
+                              labelText: 'Email',
+                              labelStyle: const TextStyle(color: Colors.pinkAccent),
+                              hintText: 'Enter your email',
+                              hintStyle: TextStyle(color: Colors.pinkAccent.withOpacity(0.7)),
+                              enabledBorder: OutlineInputBorder(
+                                borderSide: const BorderSide(color: Colors.pinkAccent),
                                 borderRadius: BorderRadius.circular(10),
                               ),
-                              backgroundColor: Colors.pinkAccent, // Pink button
+                              focusedBorder: OutlineInputBorder(
+                                borderSide: const BorderSide(color: Colors.pinkAccent, width: 2.0),
+                                borderRadius: BorderRadius.circular(10),
+                              ),
                             ),
-                            child: isLoading
-                                ? const CircularProgressIndicator(
-                              valueColor: AlwaysStoppedAnimation<Color>(Colors.white),
-                            )
-                                : const Text(
-                              'Login',
-                              style: TextStyle(
-                                fontSize: 18,
-                                color: Colors.white,
+                            validator: (value) => _validateEmail(value!),
+                          ),
+                          const SizedBox(height: 16),
+
+                          const SizedBox(height: 16),
+
+                          // Password Input Field with Toggle
+                          TextFormField(
+                            controller: _passwordController,
+                            obscureText: _obscurePassword,
+                            style: const TextStyle(color: Colors.pinkAccent),
+                            decoration: InputDecoration(
+                              labelText: 'Password',
+                              labelStyle: const TextStyle(color: Colors.pinkAccent),
+                              hintText: 'Enter your password',
+                              hintStyle: TextStyle(color: Colors.pinkAccent.withOpacity(0.7)),
+                              enabledBorder: OutlineInputBorder(
+                                borderSide: const BorderSide(color: Colors.pinkAccent),
+                                borderRadius: BorderRadius.circular(10),
+                              ),
+                              focusedBorder: OutlineInputBorder(
+                                borderSide: const BorderSide(color: Colors.pinkAccent, width: 2.0),
+                                borderRadius: BorderRadius.circular(10),
+                              ),
+                              suffixIcon: IconButton(
+                                icon: Icon(
+                                  _obscurePassword ? Icons.visibility : Icons.visibility_off,
+                                  color: Colors.pinkAccent,
+                                ),
+                                onPressed: () {
+                                  setState(() {
+                                    _obscurePassword = !_obscurePassword;
+                                  });
+                                },
                               ),
                             ),
                           ),
-                        ),
-                      ],
+                          const SizedBox(height: 20),
+
+                          if (errorMessage != null)
+                            Padding(
+                              padding: const EdgeInsets.only(bottom: 16.0),
+                              child: Text(
+                                errorMessage!,
+                                style: const TextStyle(color: Colors.red),
+                              ),
+                            ),
+
+                          // Login Button
+                          SizedBox(
+                            width: double.infinity,
+                            child: ElevatedButton(
+                              onPressed: isLoading ? null : _login,
+                              style: ElevatedButton.styleFrom(
+                                padding: const EdgeInsets.symmetric(vertical: 15),
+                                shape: RoundedRectangleBorder(
+                                  borderRadius: BorderRadius.circular(10),
+                                ),
+                                backgroundColor: Colors.pinkAccent,
+                              ),
+                              child: isLoading
+                                  ? const CircularProgressIndicator(
+                                      valueColor: AlwaysStoppedAnimation<Color>(Colors.white),
+                                    )
+                                  : const Text(
+                                      'Login',
+                                      style: TextStyle(
+                                        fontSize: 18,
+                                        color: Colors.white,
+                                      ),
+                                    ),
+                            ),
+                          ),
+                        ],
+                      ),
                     ),
                   ),
                 ),
                 const SizedBox(height: 30),
 
-                // Register Text Button
                 TextButton(
                   onPressed: () {
                     Navigator.pushNamed(context, '/register');

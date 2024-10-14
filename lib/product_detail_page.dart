@@ -25,6 +25,22 @@ class _ProductDetailPageState extends State<ProductDetailPage> {
     return await apiService.fetchProductById(widget.productId);
   }
 
+  Future<void> _addToCart() async {
+    try {
+      final apiService = ApiService();
+      await apiService.addToCart(widget.productId);
+      ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+        content: Text('Product added to cart!'),
+        backgroundColor: Colors.green,
+      ));
+    } catch (error) {
+      ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+        content: Text('Failed to add to cart: $error'),
+        backgroundColor: Colors.red,
+      ));
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -116,13 +132,11 @@ class _ProductDetailPageState extends State<ProductDetailPage> {
                         ),
                         const SizedBox(height: 24),
 
-                        // Action Button (e.g., Add to Cart or Buy Now)
+                        // Action Button (Add to Cart)
                         SizedBox(
                           width: double.infinity,
                           child: ElevatedButton(
-                            onPressed: () {
-                              // Action on button press
-                            },
+                            onPressed: _addToCart,
                             style: ElevatedButton.styleFrom(
                               padding: const EdgeInsets.symmetric(vertical: 15),
                               backgroundColor: Colors.pinkAccent,
@@ -131,7 +145,7 @@ class _ProductDetailPageState extends State<ProductDetailPage> {
                               ),
                             ),
                             child: const Text(
-                              'Buy Now',
+                              'Add to Cart',
                               style: TextStyle(
                                 fontSize: 18,
                                 color: Colors.white,
