@@ -1,7 +1,9 @@
 import 'package:flutter/material.dart';
-import 'main_screen.dart';  // Import the main screen with bottom nav
+import 'package:provider/provider.dart';
+import 'main_screen.dart';
 import 'login_page.dart';
 import 'register_page.dart';
+import 'theme_notifier.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 void main() {
@@ -24,7 +26,6 @@ class _MyAppState extends State<MyApp> {
     _checkLoginStatus();
   }
 
-  // Method to check if user has a valid token stored in SharedPreferences
   Future<void> _checkLoginStatus() async {
     SharedPreferences prefs = await SharedPreferences.getInstance();
     setState(() {
@@ -34,22 +35,45 @@ class _MyAppState extends State<MyApp> {
 
   @override
   Widget build(BuildContext context) {
-    return MaterialApp(
-      title: 'ORYX Products',
-      theme: ThemeData(
-        colorScheme: ColorScheme.fromSeed(seedColor: Colors.pinkAccent),
-        useMaterial3: true,
-        scaffoldBackgroundColor: const Color(0xFF202840),
-        textTheme: const TextTheme(
-          bodyMedium: TextStyle(color: Colors.white),
-        ),
+    return ChangeNotifierProvider(
+      create: (_) => ThemeNotifier(),
+      child: Consumer<ThemeNotifier>(
+        builder: (context, themeNotifier, child) {
+          return MaterialApp(
+            title: 'ORYX Products',
+            theme: ThemeData(
+              brightness: Brightness.light,
+              primaryColor: Colors.pinkAccent,
+              scaffoldBackgroundColor: Colors.white,
+              colorScheme: ColorScheme.fromSeed(
+                seedColor: Colors.pinkAccent,
+                brightness: Brightness.light,  // Ensure consistency here
+              ),
+              textTheme: const TextTheme(
+                bodyMedium: TextStyle(color: Colors.black),
+              ),
+            ),
+            darkTheme: ThemeData(
+              brightness: Brightness.dark,
+              scaffoldBackgroundColor: const Color(0xFF202840),
+              colorScheme: ColorScheme.fromSeed(
+                seedColor: Colors.pinkAccent,
+                brightness: Brightness.dark,  // Ensure consistency here
+              ),
+              textTheme: const TextTheme(
+                bodyMedium: TextStyle(color: Colors.white),
+              ),
+            ),
+            themeMode: themeNotifier.themeMode,  // Use ThemeNotifier to manage themeMode
+            home: token == null ? const LoginPage() : MainScreen(token: token!), // MainScreen requires token
+            routes: {
+              '/login': (context) => const LoginPage(),
+              '/register': (context) => const RegisterPage(),
+              '/home': (context) => MainScreen(token: token!), // Ensure the token is passed
+            },
+          );
+        },
       ),
-      home: token == null ? const LoginPage() : MainScreen(token: token!),  // Navigate to MainScreen
-      routes: {
-        '/login': (context) => const LoginPage(),
-        '/register': (context) => const RegisterPage(),
-        '/home': (context) => MainScreen(token: token!), // Update Home navigation
-      },
     );
   }
 }
