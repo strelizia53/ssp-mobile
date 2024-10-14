@@ -40,6 +40,7 @@ class _MyAppState extends State<MyApp> {
       child: Consumer<ThemeNotifier>(
         builder: (context, themeNotifier, child) {
           return MaterialApp(
+            debugShowCheckedModeBanner: false,  // Remove the debug banner
             title: 'ORYX Products',
             theme: ThemeData(
               brightness: Brightness.light,

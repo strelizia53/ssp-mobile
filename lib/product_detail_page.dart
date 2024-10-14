@@ -29,22 +29,28 @@ class _ProductDetailPageState extends State<ProductDetailPage> {
     try {
       final apiService = ApiService();
       await apiService.addToCart(widget.productId);
-      ScaffoldMessenger.of(context).showSnackBar(SnackBar(
-        content: Text('Product added to cart!'),
-        backgroundColor: Colors.green,
-      ));
+      if (mounted) {  // Check if widget is still mounted
+        ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+          content: Text('Product added to cart!'),
+          backgroundColor: Theme.of(context).colorScheme.primary,
+        ));
+      }
     } catch (error) {
-      ScaffoldMessenger.of(context).showSnackBar(SnackBar(
-        content: Text('Failed to add to cart: $error'),
-        backgroundColor: Colors.red,
-      ));
+      if (mounted) {  // Check if widget is still mounted
+        ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+          content: Text('Failed to add to cart: $error'),
+          backgroundColor: Theme.of(context).colorScheme.error,
+        ));
+      }
     }
   }
 
   @override
   Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+
     return Scaffold(
-      backgroundColor: const Color(0xFF202840),  // Dark background
+      backgroundColor: theme.scaffoldBackgroundColor,
       body: SafeArea(
         child: FutureBuilder<Product>(
           future: futureProduct,
@@ -63,13 +69,12 @@ class _ProductDetailPageState extends State<ProductDetailPage> {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  // Hero section with product image
                   ClipRRect(
                     borderRadius: const BorderRadius.vertical(
-                      bottom: Radius.circular(30), // Rounded bottom corners
+                      bottom: Radius.circular(30),
                     ),
                     child: Image.network(
-                      'http://10.0.2.2:8000/storage/${product.image}',  // Product image URL
+                      'http://10.0.2.2:8000/storage/${product.image}',
                       fit: BoxFit.cover,
                       width: double.infinity,
                       height: 300,
@@ -80,74 +85,65 @@ class _ProductDetailPageState extends State<ProductDetailPage> {
                   ),
                   const SizedBox(height: 20),
 
-                  // Product details content
                   Padding(
                     padding: const EdgeInsets.symmetric(horizontal: 16.0),
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        // Product Name
+                        // Updated from headline5 to headlineSmall
                         Text(
                           product.name,
-                          style: const TextStyle(
-                            fontSize: 28,
+                          style: theme.textTheme.headlineSmall?.copyWith(
                             fontWeight: FontWeight.bold,
-                            color: Colors.white,
                           ),
                         ),
                         const SizedBox(height: 12),
 
-                        // Product Description
+                        // Updated from bodyText2 to bodyMedium
                         Text(
                           product.description,
-                          style: const TextStyle(
-                            fontSize: 16,
-                            color: Colors.white70,
+                          style: theme.textTheme.bodyMedium?.copyWith(
+                            color: theme.colorScheme.onSurface.withOpacity(0.7),  // Replaced onBackground with onSurface
                           ),
                         ),
                         const SizedBox(height: 24),
 
-                        // Price and Stock Information
                         Row(
                           children: [
-                            // Price
+                            // Updated from headline6 to titleLarge
                             Text(
                               '\$${product.price}',
-                              style: const TextStyle(
-                                fontSize: 22,
+                              style: theme.textTheme.titleLarge?.copyWith(
                                 fontWeight: FontWeight.bold,
-                                color: Colors.greenAccent,
+                                color: theme.colorScheme.secondary,
                               ),
                             ),
                             const Spacer(),
-                            // Stock Info
                             Text(
                               'In Stock: ${product.stock}',
-                              style: const TextStyle(
-                                fontSize: 16,
-                                color: Colors.white70,
+                              style: theme.textTheme.bodyMedium?.copyWith(
+                                color: theme.colorScheme.onSurface.withOpacity(0.6),  // Replaced onBackground with onSurface
                               ),
                             ),
                           ],
                         ),
                         const SizedBox(height: 24),
 
-                        // Action Button (Add to Cart)
                         SizedBox(
                           width: double.infinity,
                           child: ElevatedButton(
                             onPressed: _addToCart,
                             style: ElevatedButton.styleFrom(
                               padding: const EdgeInsets.symmetric(vertical: 15),
-                              backgroundColor: Colors.pinkAccent,
+                              backgroundColor: theme.colorScheme.primary,
                               shape: RoundedRectangleBorder(
                                 borderRadius: BorderRadius.circular(12),
                               ),
                             ),
-                            child: const Text(
+                            // Updated from button to labelLarge
+                            child: Text(
                               'Add to Cart',
-                              style: TextStyle(
-                                fontSize: 18,
+                              style: theme.textTheme.labelLarge?.copyWith(
                                 color: Colors.white,
                               ),
                             ),
@@ -155,18 +151,17 @@ class _ProductDetailPageState extends State<ProductDetailPage> {
                         ),
                         const SizedBox(height: 20),
 
-                        // Back Button
                         SizedBox(
                           width: double.infinity,
                           child: TextButton(
                             onPressed: () {
                               Navigator.pop(context);
                             },
-                            child: const Text(
+                            // Updated from button to labelLarge
+                            child: Text(
                               'Go Back',
-                              style: TextStyle(
-                                fontSize: 16,
-                                color: Colors.pinkAccent,
+                              style: theme.textTheme.labelLarge?.copyWith(
+                                color: theme.colorScheme.primary,
                               ),
                             ),
                           ),
