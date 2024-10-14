@@ -10,10 +10,9 @@ class HomePage extends StatelessWidget {
   Future<void> _logout(BuildContext context) async {
     try {
       SharedPreferences prefs = await SharedPreferences.getInstance();
-      await ApiService()
-          .logout(); // Logout API call (token handled in ApiService)
+      await ApiService().logout();  // Call logout API
 
-      // Clear token and redirect to login page
+      // Clear token and navigate back to login page
       await prefs.remove('token');
       Navigator.pushReplacementNamed(context, '/login');
     } catch (error) {
@@ -31,7 +30,7 @@ class HomePage extends StatelessWidget {
         actions: [
           IconButton(
             icon: const Icon(Icons.logout),
-            onPressed: () => _logout(context), // Logout when pressed
+            onPressed: () => _logout(context),  // Logout when pressed
           ),
         ],
       ),

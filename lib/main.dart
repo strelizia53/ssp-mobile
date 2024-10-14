@@ -1,9 +1,8 @@
 import 'package:flutter/material.dart';
-import 'home_page.dart';
+import 'main_screen.dart';  // Import the main screen with bottom nav
 import 'login_page.dart';
 import 'register_page.dart';
 import 'package:shared_preferences/shared_preferences.dart';
-import 'product_page.dart';  // Import ProductPage
 
 void main() {
   runApp(const MyApp());
@@ -22,14 +21,14 @@ class _MyAppState extends State<MyApp> {
   @override
   void initState() {
     super.initState();
-    _checkLoginStatus(); // Check if user is logged in
+    _checkLoginStatus();
   }
 
   // Method to check if user has a valid token stored in SharedPreferences
   Future<void> _checkLoginStatus() async {
     SharedPreferences prefs = await SharedPreferences.getInstance();
     setState(() {
-      token = prefs.getString('token'); // Retrieve token if available
+      token = prefs.getString('token');
     });
   }
 
@@ -45,13 +44,11 @@ class _MyAppState extends State<MyApp> {
           bodyMedium: TextStyle(color: Colors.white),
         ),
       ),
-      // Check if token is null, and navigate accordingly
-      home: token == null ? const LoginPage() : HomePage(token: token ?? ''),  // Safely pass token
+      home: token == null ? const LoginPage() : MainScreen(token: token!),  // Navigate to MainScreen
       routes: {
         '/login': (context) => const LoginPage(),
         '/register': (context) => const RegisterPage(),
-        '/home': (context) => HomePage(token: token ?? ''), // Safely handle null token
-        '/products': (context) => const ProductPage(),
+        '/home': (context) => MainScreen(token: token!), // Update Home navigation
       },
     );
   }
